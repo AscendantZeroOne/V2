@@ -1,0 +1,6 @@
+function updateLineNumbers() {
+    const editor = document.getElementById('editor');
+    const lineNumbers = document.getElementById('line-numbers');
+    const lines = editor.innerText.split(/\n|\r/).length;
+    lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => i + 1).join('<br>');
+}
