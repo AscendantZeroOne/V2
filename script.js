@@ -118,13 +118,37 @@ function buildTable() {
     let tableHtml = '<table border="1"><thead><tr><th>Palavra</th><th>Token</th><th>Linha</th><th>Coluna Inicial</th><th>Coluna Final</th></tr></thead><tbody>';
     
    const tokenRegex = /\d+\.\d+|\d*[@%#&a-zA-Z_]+\d*|(program|procedure|begin|end|if|then|else|while|do|read|write|true|false)|[a-zA-Z_][a-zA-Z0-9_]*|\d+|[=<>+\-*/();,.]|:=/g;
-
-
+   
+   let insideCommentBlock = false;
     
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         let line = lines[lineIndex];
         
         rowStyle = "";
+
+        let commentIndex = line.indexOf('//');
+        if (commentIndex !== -1) {
+            line = line.substring(0, commentIndex);
+        }
+        
+
+        if (insideCommentBlock) {
+            let endCommentIndex = line.indexOf('}');
+            if (endCommentIndex !== -1) {
+                insideCommentBlock = false;
+                line = line.substring(endCommentIndex + 1); // Keep text after '}'
+            } else {
+                continue; // Ignore fully commented lines
+            }
+        }
+        
+        let startCommentIndex = line.indexOf('{');
+        if (startCommentIndex !== -1) {
+            insideCommentBlock = true;
+            line = line.substring(0, startCommentIndex); // Keep text before '{'
+        }
+        
+        
         
         let match;
         while ((match = tokenRegex.exec(line)) !== null) {
