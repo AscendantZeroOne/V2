@@ -92,6 +92,28 @@ const floatRegex = /\d+\.\d+/g;
 const numbersRegex = /\d+/g;
 const identifiersRegex = /[a-zA-Z_][a-zA-Z0-9_]*/g;
 const invalidIdentifierRegex = /\d+[a-zA-Z_]+|&\w*|%\w*|#\w*|@\w*|[a-zA-Z0-9_]{24, }/;
+let lextokens;
+
+function createSyntaxAction(stackItem, inputItem, action) {
+    return {
+        'stackItem': stackItem,
+        'inputItem': inputItem,
+        'action': action
+    };
+}
+
+let syntaxTable = [
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+    createSyntaxAction('', 'Identifier', ''),
+];
 
 function updateHighlighting() {
     const editor = document.getElementById('editor');
@@ -113,6 +135,7 @@ function updateHighlighting() {
 
 
 function buildTable() {
+    lextokens = [];
     const text = document.getElementById('editor').innerText;
     const lines = text.split('\n');
     let tableHtml = '<table border="1"><thead><tr><th>Palavra</th><th>Token</th><th>Linha</th><th>Coluna Inicial</th><th>Coluna Final</th></tr></thead><tbody>';
@@ -121,7 +144,7 @@ function buildTable() {
    
    let insideCommentBlock = false;
     
-   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         let line = lines[lineIndex];
         
         rowStyle = "";
@@ -130,10 +153,16 @@ function buildTable() {
         if (commentIndex !== -1) {
             line = line.substring(0, commentIndex);
         }
-        
+
+        let startCommentIndex = line.indexOf('{');
+        let endCommentIndex = line.indexOf('}');
+
+        if (startCommentIndex !== -1 && endCommentIndex !== -1) {
+            line = line.substring(0, startCommentIndex) + line.substring(endCommentIndex + 1);
+        }
 
         if (insideCommentBlock) {
-            let endCommentIndex = line.indexOf('}');
+            endCommentIndex = line.indexOf('}');
             if (endCommentIndex !== -1) {
                 insideCommentBlock = false;
                 line = line.substring(endCommentIndex + 1);
@@ -141,14 +170,12 @@ function buildTable() {
                 continue;
             }
         }
-        
-        let startCommentIndex = line.indexOf('{');
+
+        startCommentIndex = line.indexOf('{');
         if (startCommentIndex !== -1) {
             insideCommentBlock = true;
             line = line.substring(0, startCommentIndex);
         }
-        
-        
         
         let match;
         while ((match = tokenRegex.exec(line)) !== null) {
@@ -157,55 +184,55 @@ function buildTable() {
             if (keywords.includes(word)) {
                 if(word.includes("program"))
                 {
-                    token = "PalavraReservada_Program";
+                    token = "KeyWord_Program";
                 }
                 if(word.includes("procedure"))
                 {
-                    token = "PalavraReservada_Procedure";
+                    token = "KeyWord_Procedure";
                 }
                 if(word.includes("begin"))
                 {
-                    token = "PalavraReservada_Begin";
+                    token = "KeyWord_Begin";
                 } 
                 if(word.includes("end"))
                 {
-                    token = "PalavraReservada_End";
+                    token = "KeyWord_End";
                 }
                 if(word.includes("if"))
                 {
-                    token = "PalavraReservada_If";
+                    token = "KeyWord_If";
                 }
                 if(word.includes("then"))
                 {
-                    token = "PalavraReservada_Then";
+                    token = "KeyWord_Then";
                 }
                 if(word.includes("else"))
                 {
-                    token = "PalavraReservada_Else";
+                    token = "KeyWord_Else";
                 }
                 if(word.includes("while"))
                 {
-                    token = "PalavraReservada_While";
+                    token = "KeyWord_While";
                 }
                 if(word.includes("do"))
                 {
-                    token = "PalavraReservada_Do";
+                    token = "KeyWord_Do";
                 }
                 if(word.includes("read"))
                 {
-                    token = "PalavraReservada_Read";
+                    token = "KeyWord_Read";
                 }
                 if(word.includes("write"))
                 {
-                    token = "PalavraReservada_Write";
+                    token = "KeyWord_Write";
                 }
                 if(word.includes("true"))
                 {
-                    token = "PalavraReservada_true";
+                    token = "KeyWord_true";
                 }
                 if(word.includes("false"))
                 {
-                    token = "PalavraReservada_False";
+                    token = "KeyWord_False";
                 }  
                 
             } else if (operators.includes(word)) {
@@ -270,23 +297,23 @@ function buildTable() {
             {
                 if(word.includes("int"))
                 {
-                    token = "Int_Type";
+                    token = "Type_Int";
                 }
                 if(word.includes("float"))
                 {
-                    token = "Float_Type";
+                    token = "Type_Float";
                 }
                 if(word.includes("String"))
                 {
-                    token = "String_Type";
+                    token = "Type_String";
                 }
                 if(word.includes("double"))
                 {
-                    token = "Double_Type";
+                    token = "Type_Double";
                 }
                 if(word.includes("bool"))
                 {
-                    token = "Bool_Type";
+                    token = "Type_Bool";
                 }
 
             } else if (symbols.includes(word)) {
@@ -305,11 +332,11 @@ function buildTable() {
                 token = "Lexicon_Error";
                 rowStyle = ' style="background-color: red; color: white;"';
             } else if (floatRegex.test(word)) {
-                token = "Número_Float";
+                token = "Number_Float";
             } else if (!isNaN(word)) {
-                token = "Número";
+                token = "Number_Int";
             } else {
-                token = "Identificador";
+                token = "Identifier";
             } 
 
             if (!token.includes("Lexicon_Error"))
@@ -326,9 +353,20 @@ function buildTable() {
             const endCol = startCol + word.length - 1;
             
             tableHtml += `<tr${rowStyle}><td>${word}</td><td>${token}</td><td>${lineIndex + 1}</td><td>${startCol}</td><td>${endCol}</td></tr>`;
+            lextokens.push({'word':word,'token':token});
         }
     }
     
+    console.log(lextokens);
     tableHtml += '</tbody></table>';
     document.getElementById('table-container').innerHTML = tableHtml;
+}
+
+function syntAnalisis()
+{
+    let pairs = [];
+    for (let i = 0; i < lextokens.length; i++) {
+        let lex = lextokens[i];
+
+    }
 }
