@@ -91,7 +91,7 @@ const symbols = ["(", ")", ",", ".", ";"];
 const floatRegex = /\d+\.\d+/g;
 const numbersRegex = /\d+/g;
 const identifiersRegex = /[a-zA-Z_][a-zA-Z0-9_]*/g;
-const invalidIdentifierRegex = /\d+[a-zA-Z_]+|&\w*|%\w*|#\w*|@\w*/;
+const invalidIdentifierRegex = /\d+[a-zA-Z_]+|&\w*|%\w*|#\w*|@\w*|[a-zA-Z0-9_]{24, }/;
 
 function updateHighlighting() {
     const editor = document.getElementById('editor');
@@ -136,16 +136,16 @@ function buildTable() {
             let endCommentIndex = line.indexOf('}');
             if (endCommentIndex !== -1) {
                 insideCommentBlock = false;
-                line = line.substring(endCommentIndex + 1); // Keep text after '}'
+                line = line.substring(endCommentIndex + 1);
             } else {
-                continue; // Ignore fully commented lines
+                continue;
             }
         }
         
         let startCommentIndex = line.indexOf('{');
         if (startCommentIndex !== -1) {
             insideCommentBlock = true;
-            line = line.substring(0, startCommentIndex); // Keep text before '{'
+            line = line.substring(0, startCommentIndex);
         }
         
         
@@ -310,12 +310,18 @@ function buildTable() {
                 token = "Número";
             } else {
                 token = "Identificador";
-            }
+            } 
 
             if (!token.includes("Lexicon_Error"))
             {
                 rowStyle = ' style="background-color: white; color: black;"';
             }
+
+            if (word.length > 30) {
+                token = "Lexicon_Error";
+                rowStyle = ' style="background-color: red; color: white;"';
+            }
+
             const startCol = match.index + 1;
             const endCol = startCol + word.length - 1;
             

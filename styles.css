@@ -106,3 +106,19 @@ button:hover {
     color: red;
     font-weight: bold;
 }
+
+td {
+    max-width: 1400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+}
+  tr:hover {background-color: #007BFF}
+  td:hover {background-color: #007BFF}
+
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 0.125rem;
+  }
